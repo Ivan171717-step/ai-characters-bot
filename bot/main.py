@@ -168,7 +168,8 @@ async def message_handler(message: types.Message):
         await message.answer(ai_response)
     except Exception as e:
         await message.answer("Ошибка AI 😢 Попробуй позже")
-        print(e)
+        import traceback
+        traceback.print_exc()
 
 async def main():
     async with engine.begin() as conn:

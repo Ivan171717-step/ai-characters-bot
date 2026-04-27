@@ -4,24 +4,19 @@ import io
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
 import asyncio
-import os
 
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
-from dotenv import load_dotenv
 from sqlalchemy import select, desc
 
 from bot.ai_service import generate_ai_response
 from bot.characters import get_character_by_button
 from bot.database import async_session, engine
 from bot.models import Base, User, Message
+from bot.config import settings
 
-load_dotenv()
-
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-
-bot = Bot(token=BOT_TOKEN)
+bot = Bot(token=settings.bot_token)
 dp = Dispatcher()
 
 keyboard = ReplyKeyboardMarkup(

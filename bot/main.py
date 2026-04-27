@@ -6,7 +6,8 @@ sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
 import asyncio
 
 from aiogram import Bot, Dispatcher, types
-from aiogram.filters import CommandStart
+from aiogram.filters import CommandStart, Command
+from sqlalchemy import delete
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from sqlalchemy import select, desc
 
@@ -116,6 +117,21 @@ async def get_dialog_history(telegram_id: int, limit: int = 10) -> list[dict]:
 
         return history
 
+async def reset_dialog_history(telegram_id: int):
+    async with async_session() as session:
+        result = await session.execute(
+            select(User).where(User.telegram_id == telegram_id)
+        )
+        user = result.scalar_one_or_none()
+
+        if not user:
+            return
+
+        await session.execute(
+            delete(Message).where(Message.user_id == user.id)
+        )
+        await session.commit()
+
 
 @dp.message(CommandStart())
 async def start_handler(message: types.Message):
@@ -126,6 +142,35 @@ async def start_handler(message: types.Message):
         reply_markup=keyboard
     )
 
+@dp.message(Command("help"))
+async def help_handler(message: types.Message):
+   await message.answer(
+    "Привет! Я AI Characters Bot 🤖\n\n"
+    "Выбери персонажа:\n\n"
+    "👩 Анастейша — поддержка и забота\n"
+    "😏 Джейсон — юмор и сарказм\n\n"
+    "Команды:\n"
+    "/help\n"
+    "/character\n"
+    "/reset",
+    reply_markup=keyboard
+)
+
+@dp.message(Command("character"))
+async def character_handler(message: types.Message):
+    await set_user_character(message.from_user.id, None)
+    await message.answer(
+        "Выбери персонажа 👇",
+        reply_markup=keyboard
+    )
+
+@dp.message(Command("reset"))
+async def reset_handler(message: types.Message):
+    await reset_dialog_history(message.from_user.id)
+    await message.answer(
+        "История очищена ✅\n"
+        "Можешь продолжать общение или сменить персонажа через /character"
+    )
 
 @dp.message()
 async def message_handler(message: types.Message):

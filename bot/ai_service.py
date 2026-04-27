@@ -2,11 +2,12 @@ import os
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
 from bot.characters import CHARACTERS
+from bot.config import settings
 
 load_dotenv()
 
 client = AsyncOpenAI(
-    api_key=os.getenv("OPENAI_API_KEY")
+    api_key=settings.openai_api_key
 )
 
 
